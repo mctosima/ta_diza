@@ -35,6 +35,8 @@ from roboflow import Roboflow
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
+from datetime import datetime
+
 
 if not os.path.exists("maskdetection-3"):
     print("Downloading dataset...")
@@ -54,7 +56,7 @@ class MaskDetection(Dataset):
         self.root = root
         self.split = split  # train, valid, test
         self.coco = COCO(
-            os.path.join(root, split, "_annotations.coco.json")
+            os.path.join(root, split, "_clean_annotations.coco.json")
         )  # annotatiosn stored here
         self.ids = list(sorted(self.coco.imgs.keys()))
         self.ids = [id for id in self.ids if (len(self._load_target(id)) > 0)]
@@ -63,6 +65,7 @@ class MaskDetection(Dataset):
     def _load_image(self, id: int):
         path = self.coco.loadImgs(id)[0]["file_name"]
         image = cv2.imread(os.path.join(self.root, self.split, path))
+        # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return image
 
@@ -78,6 +81,7 @@ class MaskDetection(Dataset):
         boxes = [
             t["bbox"] + [t["category_id"]] for t in target
         ]  # required annotation format for albumentations
+
         if self.transforms is not None:
             transformed = self.transforms(image=image, bboxes=boxes)
 
@@ -160,6 +164,7 @@ class MaskDetectionModule(LightningModule):
         images, targets = batch
         images = list(image for image in images)
         targets = [{k: torch.tensor(v) for k, v in t.items()} for t in targets]
+        # print(f'Image ID: {targets[0]["image_id"]}')
 
         loss_dict = self.model(images, targets)
         losses = sum(loss for loss in loss_dict.values())
@@ -260,7 +265,9 @@ if __name__ == "__main__":
     """PREPARATION"""
     all_losses = []
     all_losses_dict = []
-    coco = COCO(os.path.join("maskdetection-3", "train", "_annotations.coco.json"))
+    coco = COCO(
+        os.path.join("maskdetection-3", "train", "_clean_annotations.coco.json")
+    )
     categories = coco.cats
     n_classes = len(categories.keys())
     print(f"Number of classes: {n_classes}")
@@ -301,6 +308,7 @@ if __name__ == "__main__":
     trainer.fit(model)
 
     """Save Model"""
-    torch.save(model.model.state_dict(), "maskdetection-3.pth")
+    # model_savename = "maskdetection-3_" + datetime.now().strftime("%Y%m%d-%H%M%S")
+    # torch.save(model.model.state_dict(), model_savename + ".pt")
 
     # trainer.test(model) # <- still have y_max error
