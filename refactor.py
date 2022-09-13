@@ -60,7 +60,6 @@ class MaskDetection(Dataset):
         self.ids = [id for id in self.ids if (len(self._load_target(id)) > 0)]
         self.transforms = transform
 
-
     def _load_image(self, id: int):
         path = self.coco.loadImgs(id)[0]["file_name"]
         image = cv2.imread(os.path.join(self.root, self.split, path))
@@ -134,7 +133,6 @@ class MaskDetectionModule(LightningModule):
             root="maskdetection-3", split="test", transform=transformation()
         )
 
-
     def forward(self, x):
         return self.model(x)
 
@@ -171,7 +169,14 @@ class MaskDetectionModule(LightningModule):
         all_losses.append(loss_value)
         all_losses_dict.append(loss_dict_append)
 
-        self.log("train_loss", losses, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.batch_size)
+        self.log(
+            "train_loss",
+            losses,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            batch_size=self.batch_size,
+        )
         return losses
 
     def val_dataloader(self):
@@ -184,7 +189,6 @@ class MaskDetectionModule(LightningModule):
         )
         return dl
 
-
     def validation_step(self, batch, batch_idx):
         # print(f'Batch {batch_idx}')
         images, targets = batch
@@ -195,9 +199,9 @@ class MaskDetectionModule(LightningModule):
         # print(f'out: {out}')
         batch_iou_list = []
         for i in range(len(out)):
-            pred_bbox = out[i]['boxes'][0].expand(1,4)
-            pred_score = out[i]['scores'][0]
-            target_bbox = targets[i]['boxes']
+            pred_bbox = out[i]["boxes"][0].expand(1, 4)
+            pred_score = out[i]["scores"][0]
+            target_bbox = targets[i]["boxes"]
             # print(f'pred_bbox: {pred_bbox}')
             # print(f'pred_score: {pred_score}')
             # print(f'target_bbox: {target_bbox}')
@@ -207,7 +211,14 @@ class MaskDetectionModule(LightningModule):
             batch_iou_list.append(iou.item())
         batch_iou = sum(batch_iou_list) / len(batch_iou_list)
         # print(f'Batch IoU: {batch_iou}')
-        self.log("val_iou", batch_iou, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.batch_size)
+        self.log(
+            "val_iou",
+            batch_iou,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            batch_size=self.batch_size,
+        )
         return batch_iou
 
     def test_dataloader(self):
@@ -227,14 +238,21 @@ class MaskDetectionModule(LightningModule):
         out = self.model(images)
         batch_iou_list = []
         for i in range(len(out)):
-            pred_bbox = out[i]['boxes'][0].expand(1,4)
-            pred_score = out[i]['scores'][0]
-            target_bbox = targets[i]['boxes']
+            pred_bbox = out[i]["boxes"][0].expand(1, 4)
+            pred_score = out[i]["scores"][0]
+            target_bbox = targets[i]["boxes"]
             iou = box_iou(pred_bbox, target_bbox)
             batch_iou_list.append(iou.item())
         batch_iou = sum(batch_iou_list) / len(batch_iou_list)
-        print(f'Batch IoU: {batch_iou}')
-        self.log("test_iou", batch_iou, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.batch_size)
+        print(f"Batch IoU: {batch_iou}")
+        self.log(
+            "test_iou",
+            batch_iou,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            batch_size=self.batch_size,
+        )
         return batch_iou
 
 
@@ -250,7 +268,9 @@ if __name__ == "__main__":
     net = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights="DEFAULT")
     in_features = net.roi_heads.box_predictor.cls_score.in_features
     net.roi_heads.box_predictor = (
-        torchvision.models.detection.faster_rcnn.FastRCNNPredictor(in_features, n_classes)
+        torchvision.models.detection.faster_rcnn.FastRCNNPredictor(
+            in_features, n_classes
+        )
     )
 
     """NOT IMPORTANT"""
