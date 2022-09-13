@@ -8,17 +8,16 @@ import matplotlib.patches as patches
 import copy
 import math
 import random
-from glob import glob
 
 import torch
 import torchvision
-from torchvision import datasets, models
 from torchvision.utils import draw_bounding_boxes, make_grid
 from torchvision.transforms import transforms as T
 from torch.utils.data import Dataset, DataLoader
+from torchmetrics import JaccardIndex
+from torchvision.ops import box_iou
 
-from pytorch_lightning import seed_everything, LightningModule, Trainer
-from sklearn.metrics import classification_report
+from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import (
     EarlyStopping,
     ModelCheckpoint,
@@ -26,8 +25,6 @@ from pytorch_lightning.callbacks import (
 )
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
-from torchsummary import summary
-
 
 from pycocotools.coco import COCO
 from roboflow import Roboflow
@@ -59,6 +56,7 @@ class MaskDetection(Dataset):
         self.ids = list(sorted(self.coco.imgs.keys()))
         self.ids = [id for id in self.ids if (len(self._load_target(id)) > 0)]
         self.transforms = transform
+
 
     def _load_image(self, id: int):
         path = self.coco.loadImgs(id)[0]["file_name"]
@@ -111,9 +109,9 @@ class MaskDetection(Dataset):
     def __len__(self):
         return len(self.ids)
 
+    def collate_fn(self, batch):
+        return tuple(zip(*batch))
 
-def collate_fn(batch):
-    return tuple(zip(*batch))
 
 
 all_losses = []
@@ -138,6 +136,7 @@ class MaskDetectionModule(LightningModule):
             root="maskdetection-3", split="test", transform=transformation()
         )
 
+
     def forward(self, x):
         return self.model(x)
 
@@ -157,7 +156,7 @@ class MaskDetectionModule(LightningModule):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            collate_fn=collate_fn,
+            collate_fn=self.train_dataset.collate_fn,
         )
         return dl
 
@@ -165,7 +164,6 @@ class MaskDetectionModule(LightningModule):
         images, targets = batch
         images = list(image for image in images)
         targets = [{k: torch.tensor(v) for k, v in t.items()} for t in targets]
-        print(f"Step: {batch_idx}")
 
         loss_dict = self.model(images, targets)
         losses = sum(loss for loss in loss_dict.values())
@@ -175,8 +173,75 @@ class MaskDetectionModule(LightningModule):
         all_losses.append(loss_value)
         all_losses_dict.append(loss_dict_append)
 
+        self.log("train_loss", losses, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.batch_size)
         return losses
 
+    def val_dataloader(self):
+        dl = DataLoader(
+            self.val_dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            collate_fn=self.val_dataset.collate_fn,
+        )
+        return dl
+
+
+    def validation_step(self, batch, batch_idx):
+        # print(f'Batch {batch_idx}')
+        images, targets = batch
+        images = list(image for image in images)
+        targets = [{k: torch.tensor(v) for k, v in t.items()} for t in targets]
+        # print(f'targets: {targets}')
+        out = self.model(images)
+        # print(f'out: {out}')
+        batch_iou_list = []
+        for i in range(len(out)):
+            pred_bbox = out[i]['boxes'][0].expand(1,4)
+            pred_score = out[i]['scores'][0]
+            target_bbox = targets[i]['boxes']
+            # print(f'pred_bbox: {pred_bbox}')
+            # print(f'pred_score: {pred_score}')
+            # print(f'target_bbox: {target_bbox}')
+
+            iou = box_iou(pred_bbox, target_bbox)
+            # print(f'IOU: {iou.item()}')
+            batch_iou_list.append(iou.item())
+        batch_iou = sum(batch_iou_list) / len(batch_iou_list)
+        print(f'Batch IoU: {batch_iou}')
+        self.log("val_iou", batch_iou, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.batch_size)
+        return batch_iou
+
+    def test_dataloader(self):
+        dl = DataLoader(
+            self.test_dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            collate_fn=self.test_dataset.collate_fn,
+        )
+        return dl
+
+    def test_step(self, batch, batch_idx):
+        images, targets = batch
+        images = list(image for image in images)
+        targets = [{k: torch.tensor(v) for k, v in t.items()} for t in targets]
+        out = self.model(images)
+        batch_iou_list = []
+        for i in range(len(out)):
+            pred_bbox = out[i]['boxes'][0].expand(1,4)
+            pred_score = out[i]['scores'][0]
+            target_bbox = targets[i]['boxes']
+            iou = box_iou(pred_bbox, target_bbox)
+            batch_iou_list.append(iou.item())
+        batch_iou = sum(batch_iou_list) / len(batch_iou_list)
+        print(f'Batch IoU: {batch_iou}')
+        self.log("test_iou", batch_iou, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.batch_size)
+        return batch_iou
+
+
+
+"""PREPARATION"""
 
 coco = COCO(os.path.join("maskdetection-3", "train", "_annotations.coco.json"))
 categories = coco.cats
@@ -189,7 +254,10 @@ net.roi_heads.box_predictor = (
     torchvision.models.detection.faster_rcnn.FastRCNNPredictor(in_features, n_classes)
 )
 
-model = MaskDetectionModule(net, lr=1e-3, batch_size=8, num_workers=4)
+
+"""TRAINING"""
+
+model = MaskDetectionModule(net, lr=1e-4, batch_size=8, num_workers=8)
 trainer = Trainer(
     accelerator="gpu",
     devices=1,
@@ -199,3 +267,4 @@ trainer = Trainer(
 )
 
 trainer.fit(model)
+# trainer.validate(model)
