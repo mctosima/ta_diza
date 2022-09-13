@@ -17,14 +17,17 @@ from torch.utils.data import Dataset, DataLoader
 from torchmetrics import JaccardIndex
 from torchvision.ops import box_iou
 
-from pytorch_lightning import LightningModule, Trainer
+
+from pytorch_lightning import LightningModule, Trainer, seed_everything
 from pytorch_lightning.callbacks import (
     EarlyStopping,
     ModelCheckpoint,
     LearningRateMonitor,
+    RichProgressBar,
 )
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks.progress.rich_progress import RichProgressBarTheme
 
 from pycocotools.coco import COCO
 from roboflow import Roboflow
@@ -208,7 +211,7 @@ class MaskDetectionModule(LightningModule):
             # print(f'IOU: {iou.item()}')
             batch_iou_list.append(iou.item())
         batch_iou = sum(batch_iou_list) / len(batch_iou_list)
-        print(f'Batch IoU: {batch_iou}')
+        # print(f'Batch IoU: {batch_iou}')
         self.log("val_iou", batch_iou, on_step=False, on_epoch=True, prog_bar=True, batch_size=self.batch_size)
         return batch_iou
 
@@ -254,17 +257,30 @@ net.roi_heads.box_predictor = (
     torchvision.models.detection.faster_rcnn.FastRCNNPredictor(in_features, n_classes)
 )
 
-
+"""NOT IMPORTANT"""
+progress_bar = RichProgressBar(
+    theme=RichProgressBarTheme(
+        description="green_yellow",
+        progress_bar="green1",
+        progress_bar_finished="green1",
+        progress_bar_pulse="#6206E0",
+        batch_progress="green_yellow",
+        time="grey82",
+        processing_speed="grey82",
+        metrics="grey82",
+    )
+)
 """TRAINING"""
-
+seed_everything(42)
 model = MaskDetectionModule(net, lr=1e-4, batch_size=8, num_workers=8)
 trainer = Trainer(
     accelerator="gpu",
     devices=1,
-    max_epochs=1,
+    max_epochs=5,
     num_sanity_val_steps=0,
     precision=16,
+    callbacks=[progress_bar],
 )
 
 trainer.fit(model)
-# trainer.validate(model)
+trainer.test(model)
