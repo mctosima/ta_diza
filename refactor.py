@@ -116,11 +116,6 @@ class MaskDetection(Dataset):
         return tuple(zip(*batch))
 
 
-
-all_losses = []
-all_losses_dict = []
-
-
 class MaskDetectionModule(LightningModule):
     def __init__(self, model, lr=1e-3, batch_size=4, num_workers=4):
         super().__init__()
@@ -243,44 +238,49 @@ class MaskDetectionModule(LightningModule):
         return batch_iou
 
 
+if __name__ == "__main__":
+    """PREPARATION"""
+    all_losses = []
+    all_losses_dict = []
+    coco = COCO(os.path.join("maskdetection-3", "train", "_annotations.coco.json"))
+    categories = coco.cats
+    n_classes = len(categories.keys())
+    print(f"Number of classes: {n_classes}")
 
-"""PREPARATION"""
-
-coco = COCO(os.path.join("maskdetection-3", "train", "_annotations.coco.json"))
-categories = coco.cats
-n_classes = len(categories.keys())
-print(f"Number of classes: {n_classes}")
-
-net = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights="DEFAULT")
-in_features = net.roi_heads.box_predictor.cls_score.in_features
-net.roi_heads.box_predictor = (
-    torchvision.models.detection.faster_rcnn.FastRCNNPredictor(in_features, n_classes)
-)
-
-"""NOT IMPORTANT"""
-progress_bar = RichProgressBar(
-    theme=RichProgressBarTheme(
-        description="green_yellow",
-        progress_bar="green1",
-        progress_bar_finished="green1",
-        progress_bar_pulse="#6206E0",
-        batch_progress="green_yellow",
-        time="grey82",
-        processing_speed="grey82",
-        metrics="grey82",
+    net = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights="DEFAULT")
+    in_features = net.roi_heads.box_predictor.cls_score.in_features
+    net.roi_heads.box_predictor = (
+        torchvision.models.detection.faster_rcnn.FastRCNNPredictor(in_features, n_classes)
     )
-)
-"""TRAINING"""
-seed_everything(42)
-model = MaskDetectionModule(net, lr=1e-4, batch_size=8, num_workers=8)
-trainer = Trainer(
-    accelerator="gpu",
-    devices=1,
-    max_epochs=5,
-    num_sanity_val_steps=0,
-    precision=16,
-    callbacks=[progress_bar],
-)
 
-trainer.fit(model)
-trainer.test(model)
+    """NOT IMPORTANT"""
+    progress_bar = RichProgressBar(
+        theme=RichProgressBarTheme(
+            description="green_yellow",
+            progress_bar="green1",
+            progress_bar_finished="green1",
+            progress_bar_pulse="#6206E0",
+            batch_progress="green_yellow",
+            time="grey82",
+            processing_speed="grey82",
+            metrics="grey82",
+        )
+    )
+    """TRAINING"""
+    seed_everything(42)
+    model = MaskDetectionModule(net, lr=1e-4, batch_size=8, num_workers=8)
+    trainer = Trainer(
+        accelerator="gpu",
+        devices=1,
+        max_epochs=5,
+        num_sanity_val_steps=0,
+        precision=16,
+        callbacks=[progress_bar],
+    )
+
+    trainer.fit(model)
+
+    """Save Model"""
+    torch.save(model.model.state_dict(), "maskdetection-3.pth")
+
+    # trainer.test(model) # <- still have y_max error
