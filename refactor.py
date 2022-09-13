@@ -137,6 +137,8 @@ class MaskDetectionModule(LightningModule):
             root="maskdetection-3", split="test", transform=transformation()
         )
 
+        self.save_hyperparameters()
+
     def forward(self, x):
         return self.model(x)
 
@@ -219,8 +221,8 @@ class MaskDetectionModule(LightningModule):
         self.log(
             "val_iou",
             batch_iou,
-            on_step=False,
-            on_epoch=True,
+            on_step=True,
+            on_epoch=False,
             prog_bar=True,
             batch_size=self.batch_size,
         )
@@ -293,22 +295,29 @@ if __name__ == "__main__":
             metrics="grey82",
         )
     )
+   
+
+    
     """TRAINING"""
     seed_everything(42)
     model = MaskDetectionModule(net, lr=1e-4, batch_size=8, num_workers=8)
+    wandb_logger = WandbLogger(project="diza-mask-detection-thermal", log_model=False)
+    wandb_logger.watch(model)
     trainer = Trainer(
         accelerator="gpu",
         devices=1,
         max_epochs=5,
         num_sanity_val_steps=0,
         precision=16,
-        callbacks=[progress_bar],
+        callbacks=[progress_bar,],
+        logger=wandb_logger,
+        log_every_n_steps=5,
     )
 
-    trainer.fit(model)
+    # trainer.fit(model) # untuk ngetrain dan validasi
 
     """Save Model"""
-    # model_savename = "maskdetection-3_" + datetime.now().strftime("%Y%m%d-%H%M%S")
-    # torch.save(model.model.state_dict(), model_savename + ".pt")
+    model_savename = "maskdetection-3_" + datetime.now().strftime("%Y%m%d-%H%M%S")
+    torch.save(model.model.state_dict(), model_savename + ".pt")
 
-    # trainer.test(model) # <- still have y_max error
+    trainer.test(model) # <- still have y_max error || untuk testing

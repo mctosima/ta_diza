@@ -1,3 +1,8 @@
 maskdetection-3/*
 lightning_logs/*
 maskdetection-3.pth
+maskdetection-3_20220913-232859.pt
+maskdetection-3_20220913-234335.pt
+__pycache__/*
+wandb/*
+diza-mask-detection-thermal/3360tgwu/*
