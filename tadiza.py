@@ -42,7 +42,7 @@ class MaskDetection(Dataset):
         self.root = root
         self.split = split  # train, valid, test
         self.coco = COCO(
-            os.path.join(root, split, "_annotations.coco.json")
+            os.path.join(root, split, "_clean_annotations.coco.json")
         )  # annotatiosn stored here
         self.ids = list(sorted(self.coco.imgs.keys()))
         self.ids = [id for id in self.ids if (len(self._load_target(id)) > 0)]
@@ -161,7 +161,6 @@ class ModuleFasterRCNN(LightningModule):
         images, targets = batch
         images = list(image for image in images)
         targets = [{k: v for k, v in t.items()} for t in targets]
-        print(f'Image ID: {targets[0]["image_id"]}')
 
         # menghitung loss
         # Pada FasterRCNN, model akan mengembalikan loss ketika digunakan dalam mode training
@@ -170,7 +169,11 @@ class ModuleFasterRCNN(LightningModule):
         # Validasi dan testing, yaitu dengan memberikan hanya gambar saja ke model
 
         loss_dict = self.model(images, targets)
+        # print(f"KELUARAN DARI TRAINING ->> {loss_dict}")
         losses = sum(loss for loss in loss_dict.values())
+
+        
+
         loss_dict_append = {k: v.item() for k, v in loss_dict.items()}
         loss_value = losses.item()
 
@@ -198,6 +201,8 @@ class ModuleFasterRCNN(LightningModule):
         targets = [{k: v for k, v in t.items()} for t in targets]
 
         output = self.model(images)
+        print(f"KELUARAN DARI VALIDASI ->> {output}")
+
         batch_iou_list = []
         for i in range(len(output)):
             pred_bbox = output[i]["boxes"][0].expand(1, 4)
@@ -229,11 +234,11 @@ if __name__ == "__main__":
         torchvision.models.detection.faster_rcnn.FastRCNNPredictor(in_features, 2)
     )
 
-    module = ModuleFasterRCNN(model=net, lr=1e-4, batch_size=1, num_workers=8)
+    module = ModuleFasterRCNN(model=net, lr=1e-4, batch_size=8, num_workers=8)
     trainer = Trainer(
         accelerator="gpu",
         devices=1,
-        max_epochs=10,
+        max_epochs=1,
         num_sanity_val_steps=0,
         precision=16,
         enable_progress_bar=True,
