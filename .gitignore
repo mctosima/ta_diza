@@ -6,3 +6,4 @@ maskdetection-3_20220913-234335.pt
 __pycache__/*
 wandb/*
 diza-mask-detection-thermal/3360tgwu/*
+model/*

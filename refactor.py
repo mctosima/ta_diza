@@ -16,6 +16,7 @@ from torchvision.transforms import transforms as T
 from torch.utils.data import Dataset, DataLoader
 from torchmetrics import JaccardIndex
 from torchvision.ops import box_iou
+from torch import nn
 
 
 from pytorch_lightning import LightningModule, Trainer, seed_everything
@@ -120,12 +121,12 @@ class MaskDetection(Dataset):
 
 
 class MaskDetectionModule(LightningModule):
-    def __init__(self, model, lr=1e-3, batch_size=4, num_workers=4):
+    def __init__(self, lr=1e-3, batch_size=4, num_workers=4, usemodel="fasterrcnn"):
         super().__init__()
-        self.model = model
         self.lr = lr
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.usemodel = usemodel
 
         self.train_dataset = MaskDetection(
             root="maskdetection-3", split="train", transform=transformation()
@@ -137,7 +138,46 @@ class MaskDetectionModule(LightningModule):
             root="maskdetection-3", split="test", transform=transformation()
         )
 
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["model"])
+
+        """LOAD MODEL"""
+        if self.usemodel == "fasterrcnn":
+            net = torchvision.models.detection.fasterrcnn_resnet50_fpn(
+                weights="DEFAULT"
+            )
+            n_features = net.roi_heads.box_predictor.cls_score.in_features
+            net.roi_heads.box_predictor = (
+                torchvision.models.detection.faster_rcnn.FastRCNNPredictor(
+                    in_features, n_classes
+                )
+            )
+            self.model = net
+
+        elif self.usemodel == "retinanet":
+            num_classes = 2
+            # Load the network
+            net = torchvision.models.detection.retinanet_resnet50_fpn(weights="COCO_V1")
+            # Get the params
+            in_features = net.head.classification_head.conv[0][0].in_channels
+            num_anchors = net.head.classification_head.num_anchors
+            # Change the classes
+            net.head.classification_head.num_classes = num_classes
+
+            # Change the cls_logits
+            cls_logits = nn.Conv2d(
+                in_features,
+                num_anchors * num_classes,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+            )
+            nn.init.normal_(cls_logits.weight, std=0.01)
+            nn.init.constant_(cls_logits.bias, -math.log((1 - 0.01) / 0.01))
+
+            # Assign to the net
+            net.head.classification_head.cls_logits = cls_logits
+            self.model = net
+        """END OF LOAD MODEL"""
 
     def forward(self, x):
         return self.model(x)
@@ -274,14 +314,6 @@ if __name__ == "__main__":
     n_classes = len(categories.keys())
     print(f"Number of classes: {n_classes}")
 
-    net = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights="DEFAULT")
-    in_features = net.roi_heads.box_predictor.cls_score.in_features
-    net.roi_heads.box_predictor = (
-        torchvision.models.detection.faster_rcnn.FastRCNNPredictor(
-            in_features, n_classes
-        )
-    )
-
     """NOT IMPORTANT"""
     progress_bar = RichProgressBar(
         theme=RichProgressBarTheme(
@@ -295,12 +327,15 @@ if __name__ == "__main__":
             metrics="grey82",
         )
     )
-   
 
-    
     """TRAINING"""
     seed_everything(42)
-    model = MaskDetectionModule(net, lr=1e-4, batch_size=8, num_workers=8)
+    model = MaskDetectionModule(
+        lr=1e-3,
+        batch_size=4,
+        num_workers=8,
+        usemodel="retinanet"
+    )
     wandb_logger = WandbLogger(project="diza-mask-detection-thermal", log_model=False)
     wandb_logger.watch(model)
     trainer = Trainer(
@@ -309,15 +344,17 @@ if __name__ == "__main__":
         max_epochs=5,
         num_sanity_val_steps=0,
         precision=16,
-        callbacks=[progress_bar,],
+        callbacks=[
+            progress_bar,
+        ],
         logger=wandb_logger,
         log_every_n_steps=5,
     )
 
-    # trainer.fit(model) # untuk ngetrain dan validasi
+    trainer.fit(model)  # untuk ngetrain dan validasi
 
     """Save Model"""
-    model_savename = "maskdetection-3_" + datetime.now().strftime("%Y%m%d-%H%M%S")
+    model_savename = "model/maskdetection-3_" + datetime.now().strftime("%Y%m%d-%H%M%S")
     torch.save(model.model.state_dict(), model_savename + ".pt")
 
-    trainer.test(model) # <- still have y_max error || untuk testing
+    # trainer.test(model) # <- still have y_max error || untuk testing
