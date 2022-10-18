@@ -11,3 +11,4 @@ maskdetection-3_20221003-101734.pt
 data/*
 others/maskdetection-3
 src/__pycache__
+diza-mask-detection-thermal/*

@@ -43,3 +43,5 @@ def model_selection(name, pretrained):  # TODO: Add more models
 
     else:
         raise ValueError("Model not found")
+
+

@@ -1,22 +1,41 @@
 from pytorch_lightning import seed_everything
+from pytorch_lightning.callbacks import LearningRateMonitor, EarlyStopping
 from utils import *
 from datareader import *
 from lightningmodule import *
 from model_list import *
-import datetime
+from datetime import datetime
 import argparse
-from pytorch_lightning import seed_everything
+from pytorch_lightning.loggers import WandbLogger
 
 
 def run_training():
     seed_everything(args.seed)
     download_data("data/")
 
-    net = model_selection(name=args.model, pretrained=args.pretrained)
+    # RUN NAME -----------------------------------------------
+    run_name = f"{args.model}_{args.runname}"
 
-    module = ModuleMaskDetection(
-        model=net, lr=args.lr, batch_size=args.batch_size, num_workers=8
+    # MODEL SELECT -------------------------------------------
+    net = model_selection(name=args.model, pretrained=args.pretrained)
+    module = ModuleMaskDetection(model=net, lr=args.lr, batch_size=args.batch_size, num_workers=8, opt=args.opt, sched=args.sched)
+
+    # WANDB LOGGING ------------------------------------------
+    wandb_logger = WandbLogger(
+        name=run_name,
+        project="diza-mask-detection-thermal",
+        log_model=False
     )
+    wandb_logger.experiment.config["model_name"] = args.model
+    wandb_logger.experiment.config["pretrained"] = args.pretrained
+
+    # LR MONITOR ---------------------------------------------
+    lr_monitor = LearningRateMonitor(logging_interval="epoch")
+
+    # EARLY STOPPING -----------------------------------------
+    earlystop = EarlyStopping(monitor="val_iou", patience=args.patience, mode="max")
+
+    # TRAINER ------------------------------------------------
     trainer = Trainer(
         accelerator="gpu",
         devices=1,
@@ -24,14 +43,23 @@ def run_training():
         num_sanity_val_steps=0,
         precision=16,
         enable_progress_bar=True,
+        logger=wandb_logger,
         callbacks=[
             progress_bar,
+            lr_monitor,
+            earlystop,
         ],
     )
-    train_start_time = datetime.datetime.now()
+    train_start_time = datetime.now()
     trainer.fit(module)
-    train_end_time = datetime.datetime.now()
+    train_end_time = datetime.now()
     print("Training time: ", train_end_time - train_start_time)
+
+    # save model
+    torch.save(
+        module.model.state_dict(),
+        f"model/{run_name}.pth",
+    )
 
 
 if __name__ == "__main__":
@@ -39,31 +67,45 @@ if __name__ == "__main__":
         description="To do the training process with some options"
     )
     parser.add_argument(
-        "--lr", type=float, default=5e-4, help="Select the learning rate (Default:5e-4)"
+        "-lr", type=float, default=5e-4, help="Select the learning rate (Default:5e-4)"
     )
     parser.add_argument(
-        "--batch_size", type=int, default=8, help="Select the batch size (Default:8)"
+        "-batch_size", type=int, default=8, help="Select the batch size (Default:8)"
     )
     parser.add_argument(
-        "--epochs",
+        "-epochs",
         type=int,
         default=10,
         help="Select the number of epochs (Default:10)",
     )
     parser.add_argument(
-        "--model",
+        "-model",
         type=str,
         default="fasterrcnn",
         help="Select the model (fasterrcnn, retinanet)",
     )
     parser.add_argument(
-        "--pretrained",
-        type=bool,
-        default=True,
+        "-pretrained",
+        action="store_true",
+        default=False,
         help="Select if you want to use pretrained weights (Default:True)",
     )
     parser.add_argument(
-        "--seed", type=int, default=2022, help="Select the seed (Default:2022)"
+        "-seed", type=int, default=2022, help="Define the seed (Default:2022)"
     )
+    parser.add_argument(
+        "-runname", type=str, default=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}", help="Define the run name"
+    )
+    parser.add_argument(
+        "-patience", type=int, default=3, help="Define the patience for early stopping"
+    )
+
+    parser.add_argument(
+        "-opt", type=str, default="sgd", help="Define the optimizer (sgd, adam, rmsprop, adagrad, adamw), Default: sgd"
+    )
+    parser.add_argument(
+        "-sched", type=str, default="None", help="Define the scheduler (cosine, step, linear, exponential, plateau). Default: None"
+    )
+
     args = parser.parse_args()
     run_training()
