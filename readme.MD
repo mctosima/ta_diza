@@ -23,6 +23,22 @@ pip install -r requirements.txt
 conda install --file requirements.txt
 ```
 
+# Struktur Project
+```
+    .
+    ├── models          # Folder untuk menyimpan model 
+    ├── data            # Datset       
+    │   ├── train       # Train Dataset  
+    │   ├── test        # Test Dataset 
+    │   └── valid       # Validation Dataset 
+    │   │   ├── _annotations.coco.json    # Anotasi
+    │   │   ├── images.jpg                # Gambar   
+    │   │   └── ...    
+    ├── others          # Histori file lama          
+    ├── src             # Source code 
+    └── ...
+```
+
 # Untuk Menjalankan Program
 ## Proses Training
 
