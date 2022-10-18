@@ -1,6 +1,28 @@
 # Deskripsi
 tba
 
+# Instalasi
+## Menggunakan pip
+
+Terlebih dahulu clone repositori ini dengan cara:
+
+```bash
+git clone xxx
+```
+
+Disarankan untuk membuat environment baru, lalu install package yang digunakan dengan cara:
+
+**pip**
+
+```bash
+pip install -r requirements.txt
+```
+
+**conda**
+```bash
+conda install --file requirements.txt
+```
+
 # Untuk Menjalankan Program
 ## Proses Training
 
