@@ -5,7 +5,6 @@ tba
 
 
 # Instalasi
-## Menggunakan pip
 
 Terlebih dahulu clone repositori ini dengan cara:
 
