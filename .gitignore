@@ -9,5 +9,5 @@ diza-mask-detection-thermal/3360tgwu/*
 model/*
 maskdetection-3_20221003-101734.pt
 data/*
-others
+others/maskdetection-3
 src/__pycache__
