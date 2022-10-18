@@ -130,5 +130,9 @@ optional arguments:
 ```
 <br>
 
-# Hasil (Wandb)
+# Link Penting
+### Wandb Report
 [Wandb Link](https://wandb.ai/mctosima/diza-mask-detection-thermal)
+
+### Download Model (Google Drive)
+[Link](https://drive.google.com/drive/folders/1y1BiRtbh15HtIkb9jYl-NYY9QGu7pE4l?usp=sharing)
