@@ -28,6 +28,11 @@ conda install --file requirements.txt
 
 <br>
 
+# Download Dataset
+Untuk mendownload dataset, jalankan fungsi `download_data("data/")` pada file 'src/utils.py' atau jalankan program `train.py` karena pada program train sudah terdapat fungsi tersebut.
+
+<br>
+
 # Struktur Project
 ```
     .
