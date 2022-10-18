@@ -1,6 +1,9 @@
 # Deskripsi
 tba
 
+<br>
+
+
 # Instalasi
 ## Menggunakan pip
 
@@ -22,6 +25,8 @@ pip install -r requirements.txt
 ```bash
 conda install --file requirements.txt
 ```
+
+<br>
 
 # Struktur Project
 ```
@@ -123,3 +128,7 @@ optional arguments:
   -pth PTH      Name of saved pytorch model
   -img IMG      Name of image to use for inference
 ```
+<br>
+
+# Hasil (Wandb)
+[Wandb Link](https://wandb.ai/mctosima/diza-mask-detection-thermal)
