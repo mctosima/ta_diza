@@ -12,6 +12,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from torchvision.ops import box_iou
 import argparse
+from datetime import datetime
 
 class SingleInference(LightningModule):
     def __init__(self, model="retinanet"):
@@ -101,6 +102,7 @@ def inference_from_dataset():
         plt.savefig("out/image_inference.png")
 
 def inference_from_image(img_path):
+    start_time = datetime.now()
     img = cv2.imread(img_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     transform = A.Compose([ToTensorV2()])
@@ -109,6 +111,7 @@ def inference_from_image(img_path):
 
     model.eval()
     preds = model([img])
+    end_time = datetime.now()
     preds_bbox = preds[0]["boxes"][0].expand(1, 4)
     print(f"Predicted Bounding Box: {preds_bbox.detach().numpy()}")
     print(f'Predicted Confidence: {preds[0]["scores"][0].detach().numpy()}')
@@ -141,6 +144,8 @@ def inference_from_image(img_path):
         ),
     ]
     plt.legend(handles=legend_elements, loc="upper right")
+
+    print(f"Inference Time: {end_time - start_time}")
 
     if args.plotshow:
         plt.show()
@@ -183,3 +188,5 @@ if __name__ == "__main__":
     else:
         print("Inference from test dataset")
         inference_from_dataset()
+
+    
