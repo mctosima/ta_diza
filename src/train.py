@@ -75,20 +75,20 @@ if __name__ == "__main__":
     parser.add_argument(
         "-epochs",
         type=int,
-        default=10,
+        default=20,
         help="Select the number of epochs (Default:10)",
     )
     parser.add_argument(
         "-model",
         type=str,
         default="fasterrcnn",
-        help="Select the model (fasterrcnn, retinanet)",
+        help="Select the model (fasterrcnn, retinanet, ssdlite)",
     )
     parser.add_argument(
         "-pretrained",
         action="store_true",
         default=False,
-        help="Select if you want to use pretrained weights (Default:True)",
+        help="Select if you want to use pretrained weights (Default:False)",
     )
     parser.add_argument(
         "-seed", type=int, default=2022, help="Define the seed (Default:2022)"
@@ -97,7 +97,7 @@ if __name__ == "__main__":
         "-runname", type=str, default=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}", help="Define the run name"
     )
     parser.add_argument(
-        "-patience", type=int, default=3, help="Define the patience for early stopping"
+        "-patience", type=int, default=2, help="Define the patience for early stopping"
     )
 
     parser.add_argument(
@@ -106,6 +106,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-sched", type=str, default="constant", help="Define the scheduler (cosine, step, linear, exponential, plateau, constant). Default: constant"
     )
-
     args = parser.parse_args()
+
+    # warning
+    if args.model == "ssdlite" and args.pretrained:
+        raise Exception("WARNING: SSDLite does not have pretrained weights")
+
     run_training()

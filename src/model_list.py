@@ -9,12 +9,13 @@ def model_selection(name, pretrained):  # TODO: Add more models
             net = torchvision.models.detection.fasterrcnn_resnet50_fpn(
                 weights="DEFAULT"
             )
-        else:
-            net = torchvision.models.detection.fasterrcnn_resnet50_fpn()
-        in_features = net.roi_heads.box_predictor.cls_score.in_features
-        net.roi_heads.box_predictor = (
+            in_features = net.roi_heads.box_predictor.cls_score.in_features
+            net.roi_heads.box_predictor = (
             torchvision.models.detection.faster_rcnn.FastRCNNPredictor(in_features, 2)
-        )
+            )
+        else:
+            net = torchvision.models.detection.fasterrcnn_resnet50_fpn(num_classes=2, trainable_backbone_layers=0)
+        
         return net
 
     elif name == "retinanet":
@@ -22,10 +23,10 @@ def model_selection(name, pretrained):  # TODO: Add more models
         if pretrained:
             net = torchvision.models.detection.retinanet_resnet50_fpn(weights="COCO_V1")
         else:
-            net = torchvision.models.detection.retinanet_resnet50_fpn()
+            net = torchvision.models.detection.retinanet_resnet50_fpn(num_classes=2, trainable_backbone_layers=0)
+
         in_features = net.head.classification_head.conv[0][0].in_channels
         num_anchors = net.head.classification_head.num_anchors
-
         net.head.classification_head.num_classes = num_classes
 
         cls_logits = nn.Conv2d(
@@ -39,10 +40,11 @@ def model_selection(name, pretrained):  # TODO: Add more models
         nn.init.constant_(cls_logits.bias, -math.log((1 - 0.01) / 0.01))
 
         net.head.classification_head.cls_logits = cls_logits
+
         return net
 
     elif name == "ssdlite":
-        net = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=2)
+        net = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=2, trainable_backbone_layers=0)
         return net
 
     else:
