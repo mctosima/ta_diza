@@ -7,7 +7,7 @@ def model_selection(name, pretrained):  # TODO: Add more models
     if name == "fasterrcnn":
         if pretrained:
             net = torchvision.models.detection.fasterrcnn_resnet50_fpn(
-                weights="DEFAULT"
+                weights="DEFAULT", trainable_backbone_layers=0
             )
             in_features = net.roi_heads.box_predictor.cls_score.in_features
             net.roi_heads.box_predictor = (
@@ -21,7 +21,7 @@ def model_selection(name, pretrained):  # TODO: Add more models
     elif name == "retinanet":
         num_classes = 2
         if pretrained:
-            net = torchvision.models.detection.retinanet_resnet50_fpn(weights="COCO_V1")
+            net = torchvision.models.detection.retinanet_resnet50_fpn(weights="COCO_V1", trainable_backbone_layers=0)
         else:
             net = torchvision.models.detection.retinanet_resnet50_fpn(num_classes=2, trainable_backbone_layers=0)
 
