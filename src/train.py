@@ -104,7 +104,7 @@ if __name__ == "__main__":
         "-opt", type=str, default="sgd", help="Define the optimizer (sgd, adam, rmsprop, adagrad, adamw), Default: sgd"
     )
     parser.add_argument(
-        "-sched", type=str, default="None", help="Define the scheduler (cosine, step, linear, exponential, plateau). Default: None"
+        "-sched", type=str, default="constant", help="Define the scheduler (cosine, step, linear, exponential, plateau, constant). Default: constant"
     )
 
     args = parser.parse_args()

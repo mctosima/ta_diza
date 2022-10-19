@@ -41,6 +41,10 @@ def model_selection(name, pretrained):  # TODO: Add more models
         net.head.classification_head.cls_logits = cls_logits
         return net
 
+    elif name == "ssdlite":
+        net = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=2)
+        return net
+
     else:
         raise ValueError("Model not found")
 

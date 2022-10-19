@@ -16,7 +16,7 @@ class ModuleMaskDetection(LightningModule):
         self.num_workers = num_workers
         self.dataset_path = "data/"
         self.opt = opt
-        self.scheduler = sched
+        self.sched = sched
 
         self.train_dataset = MaskReader(
             root=self.dataset_path, split="train", transform=train_augmentation()
@@ -42,20 +42,23 @@ class ModuleMaskDetection(LightningModule):
         elif self.opt == "adamw":
             optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr)
 
-        if self.scheduler == "cosine":
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-6)
-        elif self.scheduler == "step":
-            scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
-        elif self.scheduler == "linear":
-            scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, 0.1, 0.001)
-        elif self.scheduler == "exponential":
-            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1)
-        elif self.scheduler == "plateau":
-            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.1, patience=5, verbose=True)
-        elif self.scheduler == None:
+        if self.sched == "cosine":
+            sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-6)
+            return {"optimizer": optimizer, "lr_scheduler": sched}
+        elif self.sched == "step":
+            sched = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
+            return {"optimizer": optimizer, "lr_scheduler": sched}
+        elif self.sched == "linear":
+            sched = torch.optim.lr_scheduler.LinearLR(optimizer, 0.1, 0.001)
+            return {"optimizer": optimizer, "lr_scheduler": sched}
+        elif self.sched == "exponential":
+            sched = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1)
+            return {"optimizer": optimizer, "lr_scheduler": sched}
+        elif self.sched == "plateau":
+            sched = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.1, patience=5, verbose=True)
+            return {"optimizer": optimizer, "lr_scheduler": sched}
+        elif self.sched == "constant":
             return optimizer
-        
-        return {"optimizer": optimizer, "lr_scheduler": scheduler}
 
     def train_dataloader(self):
         train_loader = DataLoader(
