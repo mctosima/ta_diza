@@ -1,6 +1,7 @@
 from pytorch_lightning import seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor, EarlyStopping
 from utils import *
+from download_dataset import *
 from datareader import *
 from lightningmodule import *
 from model_list import *

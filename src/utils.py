@@ -1,5 +1,3 @@
-from roboflow import Roboflow
-import os
 import albumentations as A
 import numpy as np
 import random
@@ -11,15 +9,7 @@ random.seed(2022)
 np.random.seed(2022)
 
 
-def download_data(path):
-    if not os.path.exists(path):
-        print("Downloading dataset...")
-        rf = Roboflow(api_key="RLpF5qnVG3u4wi0Hgkmg")
-        project = rf.workspace("diza-febriyan-hasal").project("maskdetection-tdrvn")
-        dataset = project.version(5).download("coco", location=path)
-        print("Dataset downloaded!")
-    else:
-        print("Dataset already exists!")
+
 
 
 def train_augmentation():
