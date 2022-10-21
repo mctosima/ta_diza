@@ -13,3 +13,4 @@ others/maskdetection-3
 src/__pycache__
 diza-mask-detection-thermal/*
 src/download_dataset.py
+others
