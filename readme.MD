@@ -40,7 +40,8 @@ conda install --file requirements.txt
 # Dataset
 Silahkan tempatkan dataset anda pada folder `data` dengan struktur folder dengan struktur sebagai berikut:
 
->**Warning**: Sangat disarankan untuk menggunakan platform seperti roboflow untuk mengorganisir dataset dengan format COCO
+>**Warning** <br>
+> Sangat disarankan untuk menggunakan platform seperti roboflow untuk mengorganisir dataset dengan format COCO
 
 
 <br>
@@ -148,7 +149,8 @@ optional arguments:
 <br>
 
 # Inferensi Dengan ONNX
-> Anda disarankan menggunakan model inferensi ini apabila anda hanya ingin melakukan deteksi masker tanpa harus menggunakan/menginstall pytorch atau pytorch lightning
+>**Note** <br>
+>Anda disarankan menggunakan model inferensi ini apabila anda hanya ingin melakukan deteksi masker tanpa harus menggunakan/menginstall pytorch atau pytorch lightning
 
 TBA
 
