@@ -6,7 +6,7 @@
 
 Made available by
 
-<a href="https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white"><img alt="Lightning" src="https://camo.githubusercontent.com/e8163d66137a0391b4b9e14f1f8fae8674badbcc0d26cc849815efc751be6a9c/68747470733a2f2f706c2d666c6173682d646174612e73332e616d617a6f6e6177732e636f6d2f6173736574735f6c696768746e696e672f646f63732f696d616765732f6c6f676f732f6c696768746e696e672d61692e706e67" width="200"></a>
+<a href="https://lightning.ai/"><img alt="Lightning" src="https://camo.githubusercontent.com/e8163d66137a0391b4b9e14f1f8fae8674badbcc0d26cc849815efc751be6a9c/68747470733a2f2f706c2d666c6173682d646174612e73332e616d617a6f6e6177732e636f6d2f6173736574735f6c696768746e696e672f646f63732f696d616765732f6c6f676f732f6c696768746e696e672d61692e706e67" width="200"></a>
 
 Let's detect the mask
 
