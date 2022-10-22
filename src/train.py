@@ -23,7 +23,7 @@ def run_training():
     # WANDB LOGGING ------------------------------------------
     wandb_logger = WandbLogger(
         name=run_name,
-        project="diza-mask-detection-thermal",
+        project="ta_diza",
         log_model=False
     )
     wandb_logger.experiment.config["model_name"] = args.model
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         description="To do the training process with some options"
     )
     parser.add_argument(
-        "-lr", type=float, default=5e-4, help="Select the learning rate (Default:5e-4)"
+        "-lr", type=float, default=5e-4, help="Select the learning rate (Default:5e-4)" #0.0005
     )
     parser.add_argument(
         "-batch_size", type=int, default=8, help="Select the batch size (Default:8)"

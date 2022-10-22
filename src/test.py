@@ -99,7 +99,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-pth", type=str, default="retinanet_20221018_133502.pth", help="Name of saved pytorch model"
+        "-pth", type=str, default="retinanet_20221018_133502.pth", help="Name of saved pytorch model (with .pth)"
     )
 
     parser.add_argument(

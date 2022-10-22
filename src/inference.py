@@ -38,9 +38,10 @@ def inference_from_dataset():
     bbox = coco.loadAnns(coco.getAnnIds(random_id))[0]["bbox"]
     bbox = [[bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]]
     print(f"Bounding Box: {bbox}")
-
+    start_time = datetime.now()
     model.eval()
     preds = model([img])
+    end_time = datetime.now()
     preds_bbox = preds[0]["boxes"][0].expand(1, 4)
     print(f"Predicted Bounding Box: {preds_bbox.detach().numpy()}")
     print(f'Predicted Confidence: {preds[0]["scores"][0].detach().numpy()}')
@@ -95,6 +96,7 @@ def inference_from_dataset():
         ),
     ]
     plt.legend(handles=legend_elements, loc="upper right")
+    print(f"Inference Time: {end_time - start_time}")
 
     if args.plotshow:
         plt.show()
