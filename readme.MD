@@ -9,10 +9,10 @@ tba
 Terlebih dahulu clone repositori ini dengan cara:
 
 ```bash
-git clone xxx
+gh repo clone mctosima/ta_diza
 ```
 
-Disarankan untuk membuat environment baru, lalu install package yang digunakan dengan cara:
+Disarankan untuk membuat conda environment baru, lalu install package yang digunakan dengan cara:
 
 **pip**
 
@@ -35,7 +35,7 @@ Untuk mendownload dataset, jalankan fungsi `download_data("data/")` pada file `s
 # Struktur Project
 ```
     .
-    ├── models          # Folder untuk menyimpan model 
+    ├── model           # Folder untuk menyimpan model 
     ├── data            # Datset       
     │   ├── train       # Train Dataset  
     │   ├── test        # Test Dataset 
