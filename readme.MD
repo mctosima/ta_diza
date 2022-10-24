@@ -1,15 +1,27 @@
-# Deskripsi
-tba
+<div align="center">
+
+# Mask Detection on Thermal Image
+<a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/-Python 3.7+-blue?style=for-the-badge&logo=python&logoColor=white"></a>
+<a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/-PyTorch 1.8+-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=white"></a>
+
+Made available by
+
+<a href="https://lightning.ai/"><img alt="Lightning" src="https://camo.githubusercontent.com/e8163d66137a0391b4b9e14f1f8fae8674badbcc0d26cc849815efc751be6a9c/68747470733a2f2f706c2d666c6173682d646174612e73332e616d617a6f6e6177732e636f6d2f6173736574735f6c696768746e696e672f646f63732f696d616765732f6c6f676f732f6c696768746e696e672d61692e706e67" width="200"></a>
+
+Let's detect the mask
+
+<img alt="animate" src="others/sampeldeteksi.gif" width="400">
+</div>
+
 
 <br>
-
-
+    
 # Instalasi
 
 Terlebih dahulu clone repositori ini dengan cara:
 
 ```bash
-gh repo clone mctosima/ta_diza
+git clone https://github.com/mctosima/ta_diza
 ```
 
 Disarankan untuk membuat conda environment baru, lalu install package yang digunakan dengan cara:
