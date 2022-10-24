@@ -46,6 +46,10 @@ def model_selection(name, pretrained):  # TODO: Add more models
     elif name == "ssdlite":
         net = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=2, trainable_backbone_layers=0)
         return net
+    
+    elif name == "ssd":
+        net = torchvision.models.detection.ssd300_vgg16(num_classes=2, trainable_backbone_layers=0)
+        return net
 
     else:
         raise ValueError("Model not found")

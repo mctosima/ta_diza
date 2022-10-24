@@ -82,7 +82,7 @@ if __name__ == "__main__":
         "-model",
         type=str,
         default="fasterrcnn",
-        help="Select the model (fasterrcnn, retinanet, ssdlite)",
+        help="Select the model (fasterrcnn, retinanet, ssdlite, ssd)",
     )
     parser.add_argument(
         "-pretrained",
