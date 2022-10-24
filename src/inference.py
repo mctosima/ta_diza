@@ -101,7 +101,9 @@ def inference_from_dataset():
     if args.plotshow:
         plt.show()
     else:
-        plt.savefig("out/image_inference.png")
+        timesave=datetime.now()
+        timesave=timesave.strftime("%d-%m-%Y,%H%M%S")
+        plt.savefig("out/image_inference-"+timesave+".png")
 
 def inference_from_image(img_path):
     start_time = datetime.now()
@@ -152,7 +154,9 @@ def inference_from_image(img_path):
     if args.plotshow:
         plt.show()
     else:
-        plt.savefig("out/image_inference_fromfile.png")
+        timesave=datetime.now()
+        timesave=timesave.strftime("%d-%m-%Y,%H%M%S")
+        plt.savefig("out/image_inference_fromfile-"+timesave+".png")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
