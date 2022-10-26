@@ -50,7 +50,11 @@ def model_selection(name, pretrained):  # TODO: Add more models
     elif name == "ssd":
         net = torchvision.models.detection.ssd300_vgg16(num_classes=2, trainable_backbone_layers=0)
         return net
-
+    
+    elif name == "fcos":
+        net = torchvision.models.detection.fcos_resnet50_fpn(num_classes=2,trainable_backbone_layer=0)
+        return net
+        
     else:
         raise ValueError("Model not found")
 
