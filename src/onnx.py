@@ -10,19 +10,19 @@ import numpy as np
 import matplotlib.patches as patches
 from datetime import datetime
 
-def to_onnx():
-    class onnxmodule(LightningModule):
-        def __init__(self, model, pretrained=False):
-            super().__init__()
-            selected_model = model
-            pt = pretrained
-            self.net = model_selection(name=model, pretrained=pt)
+def to_onnx(namemodel,model):
+    # class onnxmodule(LightningModule):
+    #     def __init__(self, model, pretrained=False):
+    #         super().__init__()
+    #         selected_model = model
+    #         pt = pretrained
+    #         self.net = model_selection(name=model, pretrained=pt)
             
-        def forward(self, x):
-            return self.net(x)
+    #     def forward(self, x):
+    #         return self.net(x)
 
-    model = onnxmodule("ssdlite")
-    model.net.load_state_dict(torch.load("model/ssdlite_20221019_175945.pth"))
+    # model = onnxmodule(namemodel)
+    # model.net.load_state_dict(torch.load("model/ssdlite_20221019_175945.pth"))
 
     # Create sample input
     SAMPLE_INPUT = "data/test/1-jay_jpg.rf.5f6c42fa8601409a6029d65a872db4e3.jpg"
@@ -36,7 +36,7 @@ def to_onnx():
     print(img)
     print(img.shape)
     # save onnx model
-    savepath = "model/ssdlite_20221019_175945.onnx"
+    savepath = "model/"+namemodel+".onnx"
     model.to_onnx(savepath, img, export_params=True)
 
 def try_onnx():
@@ -50,7 +50,7 @@ def try_onnx():
     img = img.detach()
     img = img.unsqueeze(0)
 
-    ort_session = onnxruntime.InferenceSession("model/ssdlite_20221019_175945.onnx")
+    ort_session = onnxruntime.InferenceSession("model/ssdlite_20221027_001508.onnx")
     input_name = ort_session.get_inputs()[0].name
     ort_inputs = {input_name: img.detach().numpy()}
     ort_outs = ort_session.run(None, ort_inputs)

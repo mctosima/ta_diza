@@ -7,7 +7,7 @@ from model_list import *
 from datetime import datetime
 import argparse
 from pytorch_lightning.loggers import WandbLogger
-
+from onnx import to_onnx
 
 def run_training():
     seed_everything(args.seed)
@@ -56,10 +56,13 @@ def run_training():
     print("Training time: ", train_end_time - train_start_time)
 
     # save model
-    torch.save(
-        module.model.state_dict(),
-        f"model/{run_name}.pth",
-    )
+    if args.onnxformat:
+        to_onnx(run_name,module)   
+    else:
+        torch.save(
+            module.model.state_dict(),
+            f"model/{run_name}.pth",
+        )
 
 
 if __name__ == "__main__":
@@ -106,6 +109,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-sched", type=str, default="constant", help="Define the scheduler (cosine, step, linear, exponential, plateau, constant). Default: constant"
     )
+    parser.add_argument(
+        "-onnxformat",action="store_true",default=False, help="select if you want to use Onnx Format Model (Default:False)",
+    )
+
     args = parser.parse_args()
 
     # warning
