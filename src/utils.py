@@ -16,7 +16,7 @@ def download_data(path):
         print("Downloading dataset...")
         rf = Roboflow(api_key="RLpF5qnVG3u4wi0Hgkmg")
         project = rf.workspace("diza-febriyan-hasal").project("maskdetection-tdrvn")
-        dataset = project.version(5).download("coco", location=path)
+        dataset = project.version(8).download("coco", location=path)
         print("Dataset downloaded!")
     else:
         print("Dataset already exists!")
