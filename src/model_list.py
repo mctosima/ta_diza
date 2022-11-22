@@ -1,7 +1,9 @@
 import torch.nn as nn
 import torchvision
 import math
-
+from functools import partial
+from torchvision.models.detection import _utils as det_utils
+from torchvision.models.detection.ssdlite import SSDLiteClassificationHead
 
 def model_selection(name, pretrained):  # TODO: Add more models
     if name == "fasterrcnn":
@@ -45,7 +47,19 @@ def model_selection(name, pretrained):  # TODO: Add more models
 
 
     elif name == "ssdlite":
-        net = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=2, trainable_backbone_layers=0)
+        num_classes=2
+        if pretrained:
+            net = torchvision.models.detection.ssdlite320_mobilenet_v3_large(weights="COCO_V1",trainable_backbone_layers=0)
+
+            in_channels = det_utils.retrieve_out_channels(net.backbone, (320, 320))
+            num_anchors = net.anchor_generator.num_anchors_per_location()
+            norm_layer  = partial(nn.BatchNorm2d, eps=0.001, momentum=0.03)
+            num_classes = 2
+            net.head.classification_head = SSDLiteClassificationHead(in_channels, num_anchors, num_classes, norm_layer)
+
+        else:
+            net = torchvision.models.detection.ssdlite320_mobilenet_v3_large(num_classes=2, trainable_backbone_layers=0)
+
         return net
     
     elif name == "ssd":

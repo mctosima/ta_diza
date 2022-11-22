@@ -115,8 +115,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # warning
-    if args.model == "ssdlite" and args.pretrained:
-        raise Exception("WARNING: SSDLite does not have pretrained weights")
+    # # warning
+    # if args.model == "ssdlite" and args.pretrained:
+    #     raise Exception("WARNING: SSDLite does not have pretrained weights")
 
     run_training()

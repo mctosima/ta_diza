@@ -86,9 +86,6 @@ def run_testing():
         print("Results exported to out/test_list.csv")
         
 
-
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Testing Mask Detection Model"
