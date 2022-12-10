@@ -9,6 +9,7 @@ import argparse
 from pytorch_lightning.loggers import WandbLogger
 from onnx import to_onnx
 
+
 def run_training():
     seed_everything(args.seed)
     download_data("data/")
@@ -18,14 +19,17 @@ def run_training():
 
     # MODEL SELECT -------------------------------------------
     net = model_selection(name=args.model, pretrained=args.pretrained)
-    module = ModuleMaskDetection(model=net, lr=args.lr, batch_size=args.batch_size, num_workers=8, opt=args.opt, sched=args.sched)
+    module = ModuleMaskDetection(
+        model=net,
+        lr=args.lr,
+        batch_size=args.batch_size,
+        num_workers=8,
+        opt=args.opt,
+        sched=args.sched,
+    )
 
     # WANDB LOGGING ------------------------------------------
-    wandb_logger = WandbLogger(
-        name=run_name,
-        project="ta_diza",
-        log_model=False
-    )
+    wandb_logger = WandbLogger(name=run_name, project="ta_diza", log_model=False)
     wandb_logger.experiment.config["model_name"] = args.model
     wandb_logger.experiment.config["pretrained"] = args.pretrained
 
@@ -57,7 +61,7 @@ def run_training():
 
     # save model
     if args.onnxformat:
-        to_onnx(run_name,module)   
+        to_onnx(run_name, module)
     else:
         torch.save(
             module.model.state_dict(),
@@ -70,7 +74,10 @@ if __name__ == "__main__":
         description="To do the training process with some options"
     )
     parser.add_argument(
-        "-lr", type=float, default=5e-4, help="Select the learning rate (Default:5e-4)" #0.0005
+        "-lr",
+        type=float,
+        default=1e-4,
+        help="Select the learning rate (Default:1e-4)",  # 0.0001
     )
     parser.add_argument(
         "-batch_size", type=int, default=8, help="Select the batch size (Default:8)"
@@ -97,20 +104,32 @@ if __name__ == "__main__":
         "-seed", type=int, default=2022, help="Define the seed (Default:2022)"
     )
     parser.add_argument(
-        "-runname", type=str, default=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}", help="Define the run name"
+        "-runname",
+        type=str,
+        default=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+        help="Define the run name",
     )
     parser.add_argument(
         "-patience", type=int, default=2, help="Define the patience for early stopping"
     )
 
     parser.add_argument(
-        "-opt", type=str, default="sgd", help="Define the optimizer (sgd, adam, rmsprop, adagrad, adamw), Default: sgd"
+        "-opt",
+        type=str,
+        default="sgd",
+        help="Define the optimizer (sgd, adam, rmsprop, adagrad, adamw), Default: sgd",
     )
     parser.add_argument(
-        "-sched", type=str, default="constant", help="Define the scheduler (cosine, step, linear, exponential, plateau, constant). Default: constant"
+        "-sched",
+        type=str,
+        default="constant",
+        help="Define the scheduler (cosine, step, linear, exponential, plateau, constant). Default: constant",
     )
     parser.add_argument(
-        "-onnxformat",action="store_true",default=False, help="select if you want to use Onnx Format Model (Default:False)",
+        "-onnxformat",
+        action="store_true",
+        default=False,
+        help="select if you want to use Onnx Format Model (Default:False)",
     )
 
     args = parser.parse_args()

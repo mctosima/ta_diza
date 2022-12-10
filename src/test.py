@@ -6,6 +6,7 @@ from model_list import *
 import pandas as pd
 import argparse
 
+
 class ModuleMaskDetection(LightningModule):
     def __init__(self, model, batch_size=4, num_workers=4):
         super().__init__()
@@ -13,7 +14,9 @@ class ModuleMaskDetection(LightningModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.iou = 0
-        self.test_dataset = MaskReader(root="data/", split="test", transform=val_augmentation())
+        self.test_dataset = MaskReader(
+            root="data/", split="test", transform=val_augmentation()
+        )
 
     def forward(self, x):
         out = self.model(x)
@@ -33,7 +36,7 @@ class ModuleMaskDetection(LightningModule):
         images, targets = batch
         images = list(image for image in images)
         targets = [{k: v for k, v in t.items()} for t in targets]
-        
+
         iou_list = []
         iou_batch = []
 
@@ -61,15 +64,17 @@ class ModuleMaskDetection(LightningModule):
         self.iou = iou.detach().cpu()
         print(f"Test Average IoU: {iou:0.3f}")
 
+
 def run_testing():
     net = model_selection(args.model, pretrained=False)
     module = ModuleMaskDetection(model=net, batch_size=args.batch_size, num_workers=8)
     pth_path = f"model/{args.pth}"
     module.model.load_state_dict(torch.load(pth_path))
-    trainer = Trainer(accelerator="gpu", devices=1, enable_progress_bar=True, precision=16)
+    trainer = Trainer(
+        accelerator="gpu", devices=1, enable_progress_bar=True, precision=16
+    )
     trainer.test(module)
 
-    
     if args.exportres:
         print("Exporting Results...")
         # print the test_iou
@@ -78,25 +83,26 @@ def run_testing():
             "SAVED_MODEL_NAME": [args.pth],
             "TEST_IOU": [module.iou.item()],
         }
-        
+
         df = pd.DataFrame(data)
 
-        df.to_csv(f"out/test_list.csv", mode='a', index=True, header=False)
+        df.to_csv(f"out/test_list.csv", mode="a", index=True, header=False)
 
         print("Results exported to out/test_list.csv")
-        
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Testing Mask Detection Model"
-    )
+    parser = argparse.ArgumentParser(description="Testing Mask Detection Model")
 
     parser.add_argument(
         "-model", type=str, default="retinanet", help="Model to use for testing"
     )
 
     parser.add_argument(
-        "-pth", type=str, default="retinanet_20221018_133502.pth", help="Name of saved pytorch model (with .pth)"
+        "-pth",
+        type=str,
+        default="retinanet_20221018_133502.pth",
+        help="Name of saved pytorch model (with .pth)",
     )
 
     parser.add_argument(
@@ -104,8 +110,11 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-exportres", action="store_true", default=False, help="Export the result to txt file"
+        "-exportres",
+        action="store_true",
+        default=False,
+        help="Export the result to txt file",
     )
-    
+
     args = parser.parse_args()
     run_testing()

@@ -10,14 +10,15 @@ import numpy as np
 import matplotlib.patches as patches
 from datetime import datetime
 
-def to_onnx(namemodel,model):
+
+def to_onnx(namemodel, model):
     # class onnxmodule(LightningModule):
     #     def __init__(self, model, pretrained=False):
     #         super().__init__()
     #         selected_model = model
     #         pt = pretrained
     #         self.net = model_selection(name=model, pretrained=pt)
-            
+
     #     def forward(self, x):
     #         return self.net(x)
 
@@ -36,8 +37,9 @@ def to_onnx(namemodel,model):
     print(img)
     print(img.shape)
     # save onnx model
-    savepath = "model/"+namemodel+".onnx"
+    savepath = "model/" + namemodel + ".onnx"
     model.to_onnx(savepath, img, export_params=True)
+
 
 def try_onnx():
     SAMPLE_INPUT = "data/test/1-jay_jpg.rf.5f6c42fa8601409a6029d65a872db4e3.jpg"
@@ -57,18 +59,23 @@ def try_onnx():
     end_time = datetime.now()
     bbox = ort_outs[0][0]
 
-
     print(f"Inference Time: {end_time - start_time}")
     print(f"Bounding box: {bbox}")
     print(f"Saving image to out/onnx.png")
-    
+
     plt.figure()
     plt.title("ONNX Inference")
     plt.imshow(img[0].permute(1, 2, 0))
-    rect = patches.Rectangle((bbox[0], bbox[1]), bbox[2]-bbox[0], bbox[3]-bbox[1], linewidth=1, edgecolor='r', facecolor='none')
+    rect = patches.Rectangle(
+        (bbox[0], bbox[1]),
+        bbox[2] - bbox[0],
+        bbox[3] - bbox[1],
+        linewidth=1,
+        edgecolor="r",
+        facecolor="none",
+    )
     plt.gca().add_patch(rect)
     plt.savefig("out/onnx.png")
-
 
 
 if __name__ == "__main__":

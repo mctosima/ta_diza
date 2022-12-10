@@ -14,6 +14,7 @@ from torchvision.ops import box_iou
 import argparse
 from datetime import datetime
 
+
 class SingleInference(LightningModule):
     def __init__(self, model="retinanet"):
         super().__init__()
@@ -22,6 +23,7 @@ class SingleInference(LightningModule):
 
     def forward(self, x):
         return self.model(x)
+
 
 def inference_from_dataset():
     coco = COCO(os.path.join("data", "test", "_annotations.coco.json"))
@@ -63,7 +65,6 @@ def inference_from_dataset():
     )
     plt.gca().add_patch(rect)
 
-
     preds_bbox = preds_bbox.detach().numpy()
     rect_pred = patches.Rectangle(
         (preds_bbox[0][0], preds_bbox[0][1]),
@@ -101,9 +102,10 @@ def inference_from_dataset():
     if args.plotshow:
         plt.show()
     else:
-        timesave=datetime.now()
-        timesave=timesave.strftime("%d-%m-%Y,%H%M%S")
-        plt.savefig("out/image_inference-"+timesave+".png")
+        timesave = datetime.now()
+        timesave = timesave.strftime("%d-%m-%Y,%H%M%S")
+        plt.savefig("out/image_inference-" + timesave + ".png")
+
 
 def inference_from_image(img_path):
     start_time = datetime.now()
@@ -154,20 +156,25 @@ def inference_from_image(img_path):
     if args.plotshow:
         plt.show()
     else:
-        timesave=datetime.now()
-        timesave=timesave.strftime("%d-%m-%Y,%H%M%S")
-        plt.savefig("out/image_inference_fromfile-"+timesave+".png")
+        timesave = datetime.now()
+        timesave = timesave.strftime("%d-%m-%Y,%H%M%S")
+        plt.savefig("out/image_inference_fromfile-" + timesave + ".png")
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Inference Mode"
-    )
+    parser = argparse.ArgumentParser(description="Inference Mode")
     parser.add_argument(
-        "-plotshow", action="store_true", default=False, help="Show plot or save plot to output folder"
+        "-plotshow",
+        action="store_true",
+        default=False,
+        help="Show plot or save plot to output folder",
     )
 
     parser.add_argument(
-        "-passimage", action="store_true", default=False, help="Use test dataset or define the image path"
+        "-passimage",
+        action="store_true",
+        default=False,
+        help="Use test dataset or define the image path",
     )
 
     parser.add_argument(
@@ -175,11 +182,17 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-pth", type=str, default="retinanet_20221018_133502.pth", help="Name of saved pytorch model"
+        "-pth",
+        type=str,
+        default="retinanet_20221018_133502.pth",
+        help="Name of saved pytorch model",
     )
 
     parser.add_argument(
-        "-img", type=str, default="data/train/1-ivy_jpg.rf.07d2bf7eaf34a1205afb75986e488063.jpg", help="Name of image to use for inference"
+        "-img",
+        type=str,
+        default="data/train/1-ivy_jpg.rf.07d2bf7eaf34a1205afb75986e488063.jpg",
+        help="Name of image to use for inference",
     )
 
     args = parser.parse_args()
@@ -194,5 +207,3 @@ if __name__ == "__main__":
     else:
         print("Inference from test dataset")
         inference_from_dataset()
-
-    

@@ -24,7 +24,7 @@ class ModuleMaskDetection(LightningModule):
         self.val_dataset = MaskReader(
             root=self.dataset_path, split="valid", transform=val_augmentation()
         )
-        self.save_hyperparameters(ignore=['model'])
+        self.save_hyperparameters(ignore=["model"])
 
     def forward(self, x):
         out = self.model(x)
@@ -32,7 +32,13 @@ class ModuleMaskDetection(LightningModule):
 
     def configure_optimizers(self):
         if self.opt == "sgd":
-            optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, weight_decay=1e-4, nesterov=True)
+            optimizer = torch.optim.SGD(
+                self.model.parameters(),
+                lr=self.lr,
+                momentum=0.9,
+                weight_decay=1e-4,
+                nesterov=True,
+            )
         elif self.opt == "adam":
             optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         elif self.opt == "rmsprop":
@@ -43,7 +49,9 @@ class ModuleMaskDetection(LightningModule):
             optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr)
 
         if self.sched == "cosine":
-            sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-6)
+            sched = torch.optim.lr_scheduler.CosineAnnealingLR(
+                optimizer, T_max=5, eta_min=1e-6
+            )
             return {"optimizer": optimizer, "lr_scheduler": sched}
         elif self.sched == "step":
             sched = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
@@ -55,7 +63,9 @@ class ModuleMaskDetection(LightningModule):
             sched = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.1)
             return {"optimizer": optimizer, "lr_scheduler": sched}
         elif self.sched == "plateau":
-            sched = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.1, patience=5, verbose=True)
+            sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer, factor=0.1, patience=2, verbose=True
+            )
             return {"optimizer": optimizer, "lr_scheduler": sched}
         elif self.sched == "constant":
             return optimizer
@@ -107,7 +117,7 @@ class ModuleMaskDetection(LightningModule):
 
         iou_list = []
         iou_batch = []
-
+        #if len(output[0]["boxes"])==0:
         output = self.model(images)
         for i in range(len(output)):
             pred_bbox = output[i]["boxes"][0].expand(1, 4)
