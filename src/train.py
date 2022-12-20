@@ -92,7 +92,7 @@ if __name__ == "__main__":
         "-model",
         type=str,
         default="fasterrcnn",
-        help="Select the model (fasterrcnn, retinanet, ssdlite, ssd)",
+        help="Select the model (fasterrcnn, retinanet, ssdlite, ssd, FCOS)",
     )
     parser.add_argument(
         "-pretrained",
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         help="Define the run name",
     )
     parser.add_argument(
-        "-patience", type=int, default=2, help="Define the patience for early stopping"
+        "-patience", type=int, default=5, help="Define the patience for early stopping"
     )
 
     parser.add_argument(

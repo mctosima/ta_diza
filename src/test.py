@@ -82,6 +82,7 @@ def run_testing():
             "MODEL": [args.model],
             "SAVED_MODEL_NAME": [args.pth],
             "TEST_IOU": [module.iou.item()],
+            "BatchSize":[args.batch_size],
         }
 
         df = pd.DataFrame(data)

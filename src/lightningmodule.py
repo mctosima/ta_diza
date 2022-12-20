@@ -3,7 +3,7 @@ from utils import *
 from pytorch_lightning import LightningModule, Trainer
 from torchvision.ops import box_iou
 import numpy as np
-
+import torch
 
 class ModuleMaskDetection(LightningModule):
     def __init__(self, model, opt, sched, lr=1e-4, batch_size=4, num_workers=4):
@@ -66,7 +66,7 @@ class ModuleMaskDetection(LightningModule):
             sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
                 optimizer, factor=0.1, patience=2, verbose=True
             )
-            return {"optimizer": optimizer, "lr_scheduler": sched}
+            return {"optimizer": optimizer, "lr_scheduler": sched, "monitor":'val_iou'}
         elif self.sched == "constant":
             return optimizer
 
@@ -117,26 +117,52 @@ class ModuleMaskDetection(LightningModule):
 
         iou_list = []
         iou_batch = []
-        #if len(output[0]["boxes"])==0:
-        output = self.model(images)
-        for i in range(len(output)):
-            pred_bbox = output[i]["boxes"][0].expand(1, 4)
-            target_bbox = targets[i]["boxes"]
-            iou = box_iou(pred_bbox, target_bbox)
-            iou_list.append(iou)
 
+        output = self.model(images)
+
+        # if len(output[0]["boxes"])>0:
+
+        for i in range(len(output)):
+            if len(output[i]["boxes"])>0:
+                pred_bbox = output[i]["boxes"][0].expand(1, 4)
+                target_bbox = targets[i]["boxes"]
+                iou = box_iou(pred_bbox, target_bbox)
+                print ("iounya : ",iou)
+                iou_list.append(iou)
+            else:
+                iou=torch.Tensor([[0.0]])
+                iou=iou.cuda()
+                print("Not Predicted")
+                print('ini iou not detect :',iou)
+                iou_list.append(iou)
+                
         iou_batch.append(torch.stack(iou_list))
         return {"val_iou": iou_batch}
 
     def validation_epoch_end(self, outputs):
-        outputs = outputs[0]["val_iou"][0].squeeze(2)
-        iou = torch.mean(outputs)
-        self.log(
-            "val_iou",
-            iou,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            batch_size=self.batch_size,
-        )
-        print(f"Validation on Epoch {self.current_epoch} | Average IOU : {iou:0.3f}")
+
+        if len(outputs[0]["val_iou"])>0:
+
+            outputs = outputs[0]["val_iou"][0].squeeze(2)
+            iou = torch.mean(outputs)
+            self.log(
+                "val_iou",
+                iou,
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                batch_size=self.batch_size,
+            )
+            print(f"Validation on Epoch {self.current_epoch} | Average IOU : {iou:0.3f}")
+
+        else:
+            iou=torch.Tensor([0])
+            self.log(
+                "val_iou",
+                iou,
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                batch_size=self.batch_size,
+            )
+            print(f"Validation on Epoch {self.current_epoch} | Average IOU : {iou}")

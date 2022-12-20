@@ -48,7 +48,7 @@ def model_selection(name, pretrained):  # TODO: Add more models
             net.head.classification_head.cls_logits = cls_logits
 
         else:
-            net = torchvision.models.detection.retinanet_resnet50_fpn_v2(
+            net = torchvision.models.detection.retinanet_resnet50_fpn(
                 num_classes=2, trainable_backbone_layers=0
             )
 
